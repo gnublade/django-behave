@@ -38,6 +38,7 @@ def get_features(app_module):
 class DjangoBehaveTestCase(LiveServerTestCase):
     def __init__(self, **kwargs):
         self.features_dir = kwargs.pop('features_dir')
+        self.features = kwargs.pop('features')
         super(DjangoBehaveTestCase, self).__init__(**kwargs)
         unittest.TestCase.__init__(self)
 
@@ -59,9 +60,13 @@ class DjangoBehaveTestCase(LiveServerTestCase):
         self.behave_config = Configuration()
         sys.argv = old_argv
         # end of sys.argv kludge
+        
+        # Get features to run
+        features = self.get_features_dir()
+        if self.features: features = [join(features[0], f) for f in self.features]
 
         self.behave_config.server_url = self.live_server_url  # property of LiveServerTestCase
-        self.behave_config.paths = self.get_features_dir()
+        self.behave_config.paths = features
         self.behave_config.format = ['pretty']
         # disable these in case you want to add set_trace in the tests you're developing
         self.behave_config.stdout_capture = False
@@ -107,17 +112,22 @@ class DjangoBehaveTestCase(LiveServerTestCase):
         # end of from behave/__main__.py
 
 class DjangoBehaveTestSuiteRunner(DjangoTestSuiteRunner):
-    def make_bdd_test_suite(self, features_dir):
-        return DjangoBehaveTestCase(features_dir=features_dir)
+    def make_bdd_test_suite(self, features_dir, features=[]):
+        return DjangoBehaveTestCase(features_dir=features_dir,features=features)
 
     def build_suite(self, test_labels, extra_tests=None, **kwargs):
         # build standard Django test suite
         suite = unittest.TestSuite()
 
+        # Look for specific test features and take them out
+        features = [f for f in test_labels if '.feature' in f]
+        test_labels = set(test_labels) - set(features)
+
         #
         # Run Normal Django Test Suite
         #
-        std_test_suite = super(DjangoBehaveTestSuiteRunner,self).build_suite(test_labels,**kwargs)
+        std_test_suite = super(DjangoBehaveTestSuiteRunner, self).\
+            build_suite(test_labels, **kwargs)
         suite.addTest(std_test_suite)
 
         #
@@ -136,7 +146,7 @@ class DjangoBehaveTestSuiteRunner(DjangoTestSuiteRunner):
             features_dir = get_features(app)
             if features_dir is not None:
                 # build a test suite for this directory
-                suite.addTest(self.make_bdd_test_suite(features_dir))
+                suite.addTest(self.make_bdd_test_suite(features_dir, features))
 
         return reorder_suite(suite, (LiveServerTestCase,))
 
