@@ -194,13 +194,6 @@ class DjangoBehaveTestSuiteRunner(DjangoTestSuiteRunner):
         test_labels = set(test_labels) - set(features)
 
         #
-        # Add BDD tests to the extra_tests
-        #
-        std_test_suite = super(DjangoBehaveTestSuiteRunner, self).\
-            build_suite(test_labels, **kwargs)
-        suite.addTest(std_test_suite)
-
-        #
         # Add BDD tests to it
         #
 
