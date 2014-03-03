@@ -67,6 +67,9 @@ def get_options():
 
             name = "--behave_" + long_option[2:]
 
+            # Ignore types, just pass through the string value.
+            keywords.pop('type', None)
+
             option_list = option_list + \
                 (make_option(name, **keywords),)
 
