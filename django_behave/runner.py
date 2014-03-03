@@ -145,7 +145,7 @@ class DjangoBehaveTestCase(LiveServerTestCase):
 
         self.behave_config.server_url = self.live_server_url  # property of LiveServerTestCase
         self.behave_config.paths = features
-        self.behave_config.format = ['pretty']
+        self.behave_config.format = self.behave_config.format if self.behave_config.format else ['pretty']
         # disable these in case you want to add set_trace in the tests you're developing
         self.behave_config.stdout_capture = False
         self.behave_config.stderr_capture = False
@@ -163,7 +163,7 @@ class DjangoBehaveTestCase(LiveServerTestCase):
         except ConfigError, e:
             sys.exit(str(e))
 
-        if self.behave_config.show_snippets and runner.undefined:
+        if self.behave_config.show_snippets and runner.undefined_steps:
             msg = u"\nYou can implement step definitions for undefined steps with "
             msg += u"these snippets:\n\n"
             printed = set()
@@ -173,7 +173,7 @@ class DjangoBehaveTestCase(LiveServerTestCase):
             else:
                 string_prefix = u"(u'"
 
-            for step in set(runner.undefined):
+            for step in runner.undefined_steps:
                 if step in printed:
                     continue
                 printed.add(step)
@@ -207,13 +207,13 @@ class DjangoBehaveTestSuiteRunner(DjangoTestSuiteRunner):
         test_labels = set(test_labels) - set(features)
 
         #
-        # Add BDD tests to it
+        # Add BDD tests to the extra_tests
         #
 
         # always get all features for given apps (for convenience)
         for label in test_labels:
             if '.' in label:
-                print "Ignoring label with dot in: " % label
+                print "Ignoring label with dot in: %s" % label
                 continue
             app = get_app(label)
 
