@@ -132,11 +132,11 @@ class DjangoBehaveTestCase(LiveServerTestCase):
         (sys.argv, our_opts) = parse_argv(old_argv, self.option_info)
         self.behave_config = Configuration()
         sys.argv = old_argv
-        # end of sys.argv kludge
         
         # Get features to run
         features = self.get_features_dir()
         if self.features: features = [join(features[0], f) for f in self.features]
+
         self.behave_config.browser = our_opts["browser"]
 
         self.behave_config.server_url = self.live_server_url  # property of LiveServerTestCase
@@ -193,24 +193,14 @@ class DjangoBehaveTestSuiteRunner(DjangoTestSuiteRunner):
     (option_list, option_info) = get_options()
 
     def make_bdd_test_suite(self, features_dir, features=[]):
-        return DjangoBehaveTestCase(features_dir=features_dir, features=features, option_info=self.option_info)
+        return DjangoBehaveTestCase(features_dir=features_dir, option_info=self.option_info, features=features)
 
     def build_suite(self, test_labels, extra_tests=None, **kwargs):
-        # build standard Django test suite
-        suite = unittest.TestSuite()
+        extra_tests = extra_tests or []
 
         # Look for specific test features and take them out
         features = [f for f in test_labels if '.feature' in f]
         test_labels = set(test_labels) - set(features)
-
-    def build_suite(self, test_labels, extra_tests=None, **kwargs):
-        extra_tests = extra_tests or []
-        #
-        # Add BDD tests to the extra_tests
-        #
-        std_test_suite = super(DjangoBehaveTestSuiteRunner, self).\
-            build_suite(test_labels, **kwargs)
-        suite.addTest(std_test_suite)
 
         #
         # Add BDD tests to it
