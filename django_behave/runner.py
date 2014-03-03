@@ -222,7 +222,7 @@ class DjangoBehaveTestSuiteRunner(DjangoTestSuiteRunner):
             features_dir = get_features(app)
             if features_dir is not None:
                 # build a test suite for this directory
-                extra_tests.append(self.make_bdd_test_suite(features_dir))
+                extra_tests.append(self.make_bdd_test_suite(features_dir, features))
 
         return super(DjangoBehaveTestSuiteRunner, self
                      ).build_suite(test_labels, extra_tests, **kwargs)
